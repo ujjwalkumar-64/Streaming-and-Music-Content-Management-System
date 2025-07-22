@@ -1,47 +1,54 @@
 package com.example.registrationProject.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class Permission {
+@Data
+public class Album {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true , nullable = false)
-    private String permission_name;
+    private String title;
+    private String description;
+
+    private LocalDate releaseDate;
+
+    private String coverImage;
+
+    @OneToMany(cascade = CascadeType.ALL )
+    private List<Artist> artists;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @ManyToMany(mappedBy = "permissions",fetch = FetchType.EAGER)
-    @JsonIgnore
-    private List<Role> roles;
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Track>tracks;
 
-    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "userPermissions")
-    @JsonIgnore
-    private List<User> users;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name="album_genres",
+            joinColumns = @JoinColumn(name="album_id"),
+            inverseJoinColumns = @JoinColumn(name="genre_id")
+    )
+    private List<Genre> albumGenres;
+
 
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
-
     @UpdateTimestamp
-    @Column(updatable = true)
     private LocalDateTime updatedAt;
-
 }

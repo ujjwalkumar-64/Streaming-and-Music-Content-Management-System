@@ -35,6 +35,10 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private TempUserRepository tempUserRepository;
 
+
+    @Autowired
+    private ArtistRepository artistRepository;
+
     @Autowired
     private EmailServiceImpl emailService;
     
@@ -46,6 +50,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private LabelRepository labelRepository;
+
+    @Autowired
+    private PodcasterRepository podcasterRepository;
 
 
     private String generateOTP(){
@@ -236,7 +246,6 @@ public class UserServiceImpl implements UserService {
                 user.getStatus(),
                 user.getGender(),
                 user.getImageUrl(),
-                user.getRole(),
                 user.getDob(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
@@ -244,7 +253,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    private String uploadPhoto(MultipartFile file) throws IOException {
+    public String uploadPhoto(MultipartFile file) throws IOException {
         String filePath= System.getProperty("user.dir")+"\\pictures"+File.separator+ UUID.randomUUID().toString()+file.getOriginalFilename();
         FileOutputStream fout= new FileOutputStream(filePath);
         fout.write(file.getBytes());
@@ -274,7 +283,7 @@ public class UserServiceImpl implements UserService {
                     savedUser.getStatus(),
                     savedUser.getGender(),
                     savedUser.getImageUrl(),
-                   savedUser.getRole(),
+
                     savedUser.getDob(),
                     savedUser.getCreatedAt(),
                     savedUser.getUpdatedAt()
@@ -344,7 +353,40 @@ public class UserServiceImpl implements UserService {
         User user= userRepository.findByEmail(email).orElseThrow(()->new CustomException("User not found"));
         Role role= roleRepository.findbyRole(newRole);
         user.setRole(role);
-        userRepository.save(user);
+
+        User savedUser=userRepository.save(user);
+
+
+        switch (newRole) {
+            case "ROLE_ARTIST" -> {
+                Artist artist = new Artist();
+
+                artist.setArtistName(savedUser.getFullName());
+                artist.setProfilePic(savedUser.getImageUrl());
+                artist.setStatus(savedUser.getStatus());
+                artist.setUser(savedUser);
+                artistRepository.save(artist);
+            }
+            case "ROLE_LABEL" -> {
+                Label label = new Label();
+                label.setName(savedUser.getFullName());
+                label.setOwnerUser(savedUser);
+                label.setStatus(savedUser.getStatus());
+                labelRepository.save(label);
+            }
+            case "ROLE_PODCASTER" -> {
+                Podcaster pod = new Podcaster();
+                pod.setStatus(savedUser.getStatus());
+                pod.setUser(savedUser);
+                pod.setPodcasterName(savedUser.getFullName());
+                pod.setProfilePic(savedUser.getImageUrl());
+
+                podcasterRepository.save(pod);
+            }
+        }
+
+
+
 
     };
 
@@ -361,7 +403,7 @@ public class UserServiceImpl implements UserService {
                 .map(permissionId -> permissionRepository.findById(permissionId)
                         .orElseThrow(() -> new CustomException("Permission not found")))
                 .collect(Collectors.toList());
-//        user.setPermissions(permissions);
+        user.setUserPermissions(permissions);
         userRepository.save(user);
 
     }

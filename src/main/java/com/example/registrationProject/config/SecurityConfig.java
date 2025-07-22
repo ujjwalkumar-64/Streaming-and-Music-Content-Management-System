@@ -27,8 +27,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -47,7 +53,8 @@ public class SecurityConfig {
             "/register",
             "/login",
             "/otp/validate",
-            "/otp/resend"
+            "/otp/resend",
+            "/swagger-ui/index.html"
     };
 
     @Bean
@@ -69,6 +76,20 @@ public class SecurityConfig {
         return  new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
+        configuration.addExposedHeader("Authorization");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -78,16 +99,25 @@ public class SecurityConfig {
         JWTAuthenticationFilter jwtAuthFilter= new JWTAuthenticationFilter(authenticationManager,jwtUtil);
         JwtValidationFilter jwtValidationFilter= new JwtValidationFilter(authenticationManager);
         JwtRefreshFilter jwtRefreshFilter= new JwtRefreshFilter(jwtUtil,authenticationManager);
-        http.authorizeHttpRequests(
+        http
+                .cors(withDefaults() )
+                .authorizeHttpRequests(
                 auth-> auth
                         .requestMatchers("/user/deleteAccount").hasAnyAuthority("MANAGE_USER")
                         .requestMatchers("/user/update/permission").hasAnyAuthority("ASSIGN_ROLE")
                         .requestMatchers("/user/update/role").hasAuthority("ASSIGN_ROLE")
                         .requestMatchers("/user/*").hasAnyAuthority("BROWSE_MUSIC")
-                        .requestMatchers("/product/delete").hasAnyAuthority("DELETE_CONTENT")
-                        .requestMatchers("/product/update").hasAnyAuthority("UPDATE_CONTENT")
-                        .requestMatchers("/product/create").hasAnyAuthority("CREATE_CONTENT")
-                        .requestMatchers("/product/*").hasAnyAuthority("BROWSE_MUSIC")
+                        .requestMatchers("/artist/update").hasAnyAuthority("ROLE_ARTIST","MANAGE_USER")
+                        .requestMatchers("/playlist/*").hasAnyAuthority("BROWSE_MUSIC","ROLE_USER")
+                        .requestMatchers("/track/add").hasAuthority("MANAGE_CONTENT")
+                        .requestMatchers("/track/update").hasAnyAuthority("MANAGE_CONTENT")
+                        .requestMatchers("/track/delete").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/playlist/*").hasAnyAuthority("BROWSE_MUSIC")
+                        .requestMatchers("/album/create").hasAnyAuthority("MANAGE_CONTENT")
+                        .requestMatchers("/label/update").hasAnyAuthority("ROLE_SUPER_ADMIN","ROLE_LABEL","MANAGE_CONTENT")
+                        .requestMatchers("/track/*").hasAnyAuthority("BROWSE_MUSIC")
+                        .requestMatchers("/album/*").hasAnyAuthority("BROWSE_MUSIC")
+
                         .requestMatchers(whiteList).permitAll()
                         .anyRequest().authenticated()
         )
@@ -96,11 +126,17 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtValidationFilter,JWTAuthenticationFilter.class)
                 .addFilterAfter(jwtRefreshFilter, JwtValidationFilter.class)
-                .httpBasic(Customizer.withDefaults());
+
+                ;
 
                 return http.build();
 
     }
+
+
+
+
+
 
     @Bean
     public AuthenticationManager authenticationManager(

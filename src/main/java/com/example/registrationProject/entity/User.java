@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -75,16 +72,33 @@ public class User implements UserDetails {
 
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name="role_id")
+    @ToString.Exclude
     private Role role;
+
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_permission",
+            joinColumns = @JoinColumn(name= "user_id"),
+            inverseJoinColumns = @JoinColumn(name= "permission_id")
+    )
+    @ToString.Exclude
+    private List<Permission> userPermissions;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities(){
         Set<GrantedAuthority> authorities= new HashSet<>();
-        authorities.add(new SimpleGrantedAuthority(role.getRole()));
+
 
         if(role.getStatus()==Status.active){
-            List<Permission> permissions = role.getPermissions();
-            permissions.stream().filter((permission -> permission.getStatus()==Status.active))
+            List<Permission> rolePermissions = role.getPermissions();
+            rolePermissions.stream().filter((permission -> permission.getStatus()==Status.active))
+                    .forEach((permission -> authorities.add(new SimpleGrantedAuthority(permission.getPermission_name()))));
+            authorities.add(new SimpleGrantedAuthority(role.getRole()));
+
+        }
+        if(userPermissions!=null){
+            userPermissions.stream().filter((permission -> permission.getStatus()==Status.active))
                     .forEach((permission -> authorities.add(new SimpleGrantedAuthority(permission.getPermission_name()))));
 
         }
