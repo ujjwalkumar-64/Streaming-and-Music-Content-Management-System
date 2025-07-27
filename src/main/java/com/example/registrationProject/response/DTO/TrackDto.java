@@ -1,6 +1,7 @@
 package com.example.registrationProject.response.DTO;
 
 import com.example.registrationProject.entity.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,11 +11,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TrackDto {
     @JsonProperty("track_id")
     private Long id;

@@ -5,6 +5,8 @@ import com.example.registrationProject.exception.CustomException;
 import com.example.registrationProject.repository.*;
 import com.example.registrationProject.request.PermissionUpdate;
 import com.example.registrationProject.request.UserRequest;
+import com.example.registrationProject.response.DTO.UserCountResponseDto;
+import com.example.registrationProject.response.DTO.UserDto;
 import com.example.registrationProject.response.UserResponse;
 import com.example.registrationProject.service.UserService;
 import jakarta.transaction.Transactional;
@@ -22,6 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -246,6 +249,7 @@ public class UserServiceImpl implements UserService {
                 user.getStatus(),
                 user.getGender(),
                 user.getImageUrl(),
+                user.getRole().getRole(),
                 user.getDob(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
@@ -407,4 +411,39 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
     }
+
+    @Override
+    public List<UserDto> getAllUsers(){
+        List<User> users= userRepository.findAll();
+        List<UserDto> userDtos= new ArrayList<>();
+        users.forEach(user->{
+           userDtos.add( new UserDto().builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .gender(user.getGender())
+                    .userRole(user.getRole().getRole())
+                    .status(user.getStatus())
+                   .joiningDate(user.getCreatedAt())
+                    .build());
+        });
+
+        return userDtos;
+    }
+
+    @Override
+    public UserCountResponseDto countAllUsers(){
+        Long totalUsers= userRepository.countAllUsers();
+        Long totalActiveUser= userRepository.countActiveUsers(Status.active);
+        Long totalInActiveUser= userRepository.countInActiveUsers(Status.inactive);
+
+         return new UserCountResponseDto().builder()
+                 .totalUsers(totalUsers)
+                 .activeUsers(totalActiveUser)
+                 .inactiveUsers(totalInActiveUser)
+                 .build();
+
+    }
+
+
 }

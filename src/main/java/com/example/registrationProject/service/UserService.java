@@ -3,6 +3,8 @@ package com.example.registrationProject.service;
 import com.example.registrationProject.entity.Role;
 import com.example.registrationProject.request.PermissionUpdate;
 import com.example.registrationProject.request.UserRequest;
+import com.example.registrationProject.response.DTO.UserCountResponseDto;
+import com.example.registrationProject.response.DTO.UserDto;
 import com.example.registrationProject.response.UserResponse;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,5 +25,9 @@ public interface UserService extends UserDetailsService {
     void resetPassword(UserRequest userRequest);
     void updateRole(String email, String role);
     void updatePermission(PermissionUpdate permissionUpdate);
+
+    List<UserDto> getAllUsers();
+
+    UserCountResponseDto countAllUsers();
 
 }

@@ -1,14 +1,10 @@
 package com.example.registrationProject.service.imp;
 
-import com.example.registrationProject.entity.Playlist;
-import com.example.registrationProject.entity.Status;
-import com.example.registrationProject.entity.Track;
-import com.example.registrationProject.entity.User;
+import com.example.registrationProject.entity.*;
 import com.example.registrationProject.exception.CustomException;
 import com.example.registrationProject.repository.PlaylistRepository;
 import com.example.registrationProject.repository.TrackRepository;
 import com.example.registrationProject.request.PlaylistRequest;
-import com.example.registrationProject.response.DTO.AlbumDto;
 import com.example.registrationProject.response.DTO.TrackDto;
 import com.example.registrationProject.response.DTO.UserDto;
 import com.example.registrationProject.response.PlaylistResponse;
@@ -19,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -49,6 +44,7 @@ public class PlaylistServiceImp   implements PlaylistService {
 
         playlist.setTracks(tracks);
         playlist.setStatus(Status.active);
+        playlist.setType(Type.Private);
         Playlist response= playlistRepository.save(playlist);
 
 
@@ -66,9 +62,6 @@ public class PlaylistServiceImp   implements PlaylistService {
         UserDto userDto= UserDto.builder()
                 .id(playlist.getCreator().getId())
                 .fullName(playlist.getCreator().getFullName())
-                .email(playlist.getCreator().getEmail())
-                .gender(playlist.getCreator().getGender())
-                .dob(playlist.getCreator().getDob())
                 .build();
 
 
@@ -112,9 +105,6 @@ public class PlaylistServiceImp   implements PlaylistService {
         UserDto userDto= UserDto.builder()
                 .id(playlist.getCreator().getId())
                 .fullName(playlist.getCreator().getFullName())
-                .email(playlist.getCreator().getEmail())
-                .gender(playlist.getCreator().getGender())
-                .dob(playlist.getCreator().getDob())
                 .build();
 
 
@@ -129,4 +119,75 @@ public class PlaylistServiceImp   implements PlaylistService {
                 .build();
 
     }
+
+    @Override
+    public List<PlaylistResponse> getUserPlaylist() {
+        User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<Playlist> playlists= playlistRepository.findPlaylistByCreatorId(user.getId());
+
+        UserDto userDto= new UserDto().builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .build();
+
+        List<PlaylistResponse> playlistsResponse= new ArrayList<>();
+          playlists.forEach(playlist->{
+              List<TrackDto> trackDtos= new ArrayList<>();
+              playlist.getTracks().forEach(track->{
+                  trackDtos.add(new TrackDto().builder()
+                          .id(track.getId())
+                          .trackName(track.getTitle())
+                          .trackUrl(track.getTrackRecord().getPath())
+                          .build());
+              });
+            playlistsResponse.add(new PlaylistResponse().builder()
+                            .id(playlist.getId())
+                            .name(playlist.getName())
+                            .description(playlist.getDescription())
+                            .status(playlist.getStatus())
+                            .creator(userDto)
+                            .tracks(trackDtos)
+
+                    .build());
+        });
+
+          return playlistsResponse;
+
+    }
+
+    @Override
+    public List<PlaylistResponse> getAllPlaylists() {
+         List<Playlist> playlists= playlistRepository.findAll();
+         List<PlaylistResponse> playlistsResponse= new ArrayList<>();
+
+         playlists.forEach(playlist->{
+             List<TrackDto> trackDtos= new ArrayList<>();
+             playlist.getTracks().forEach(track->{
+                    trackDtos.add(new TrackDto().builder()
+                                    .id(track.getId())
+                                    .trackName(track.getTitle())
+                                    .trackUrl(track.getTrackRecord().getPath())
+                            .build());
+                });
+
+                UserDto userDto = new UserDto().builder()
+                        .id(playlist.getCreator().getId())
+                        .fullName(playlist.getCreator().getFullName())
+                        .build();
+
+             playlistsResponse.add(new PlaylistResponse().builder()
+                             .id(playlist.getId())
+                             .name(playlist.getName())
+                             .status(playlist.getStatus())
+                             .description(playlist.getDescription())
+                             .creator(userDto)
+                             .tracks(trackDtos)
+                     .build());
+         });
+
+         return playlistsResponse;
+
+    }
+
+
 }

@@ -23,7 +23,7 @@ public class TrackResponse {
     private String trackName;
     private String trackDescription;
 
-    private Type trackType;
+    private String trackType;
     private String trackUrl;
     private Long trackDuration;
 
@@ -31,7 +31,5 @@ public class TrackResponse {
     private AlbumDto album;
     private List<GenreDto> genre;
     private LabelDto label;
-
-
 
 }

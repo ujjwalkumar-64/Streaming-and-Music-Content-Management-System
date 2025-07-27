@@ -23,4 +23,24 @@ public class ArtistController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping(value = "artist/profile")
+    public ResponseEntity<Object> getArtistProfile(){
+        try{
+            return ResponseEntity.ok(artistService.getMyProfile());
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "artist/all")
+    public ResponseEntity<Object> getAllArtistsProfile(){
+        try {
+            return ResponseEntity.ok(artistService.getAllArtistProfile());
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

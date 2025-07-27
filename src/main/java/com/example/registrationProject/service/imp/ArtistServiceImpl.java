@@ -6,18 +6,16 @@ import com.example.registrationProject.entity.User;
 import com.example.registrationProject.exception.CustomException;
 import com.example.registrationProject.repository.ArtistRepository;
 import com.example.registrationProject.repository.GenreRepository;
-import com.example.registrationProject.repository.UserRepository;
 import com.example.registrationProject.request.ArtistRequest;
 import com.example.registrationProject.response.ArtistResponse;
+import com.example.registrationProject.response.DTO.ArtistDto;
 import com.example.registrationProject.response.DTO.GenreDto;
 import com.example.registrationProject.response.DTO.UserDto;
 import com.example.registrationProject.service.ArtistService;
-import org.apache.tomcat.util.http.fileupload.FileUpload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,10 +70,6 @@ public class ArtistServiceImpl implements ArtistService {
 
         UserDto userDto= UserDto.builder()
                 .id(response.getUser().getId())
-                .fullName(response.getUser().getFullName())
-                .email(response.getUser().getEmail())
-                .gender(response.getUser().getGender())
-                .dob(response.getUser().getDob())
                 .build();
 
         List<GenreDto> genreDtos= new ArrayList<>();
@@ -97,6 +91,58 @@ public class ArtistServiceImpl implements ArtistService {
                 .build();
     }
 
+    @Override
+    public ArtistDto getMyProfile() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Artist artist = artistRepository.findByUserId(user.getId()).orElseThrow(()->new CustomException("Artist Profile Not Found"));
+        List<Genre> genres = artist.getArtistGenres();
+        List<GenreDto> genreDtos= new ArrayList<>();
+        genres.forEach(genre->{
+            genreDtos.add( GenreDto.builder()
+                            .id(genre.getId())
+                            .name(genre.getName())
+                    .build());
+        });
+        return ArtistDto.builder()
+                .id(artist.getId())
+                .artistName(artist.getArtistName())
+                .bio(artist.getBio())
+                .profilePic(artist.getProfilePic())
+                .status(artist.getStatus())
+                .genres(genreDtos)
+                .joiningDate(artist.getCreatedAt())
+                .build();
+    }
+
+
+    @Override
+    public List<ArtistDto> getAllArtistProfile(){
+        List<Artist> artists = artistRepository.findAll();
+
+        List<ArtistDto> artistDtos= new ArrayList<>();
+        artists.forEach(artist->{
+            List<Genre> genres = artist.getArtistGenres();
+            List<GenreDto> genreDtos= new ArrayList<>();
+            genres.forEach(genre->{
+                genreDtos.add( GenreDto.builder()
+                        .id(genre.getId())
+                        .name(genre.getName())
+                        .build());
+            });
+
+            artistDtos.add(ArtistDto.builder()
+                            .id(artist.getId())
+                            .artistName(artist.getArtistName())
+                            .bio(artist.getBio())
+                            .profilePic(artist.getProfilePic())
+                            .status(artist.getStatus())
+                            .genres(genreDtos)
+                            .joiningDate(artist.getCreatedAt())
+
+                    .build());
+        });
+        return artistDtos;
+    }
 
 
 

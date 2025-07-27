@@ -13,25 +13,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Product {
+public class Language {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false )
-    private String productName;
+    @Column(unique = true)
+    private String name;
 
-    @Column(nullable = false )
-    private String description;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
-
     @UpdateTimestamp
-    @Column(updatable = true)
     private LocalDateTime updatedAt;
-
-
 
 }

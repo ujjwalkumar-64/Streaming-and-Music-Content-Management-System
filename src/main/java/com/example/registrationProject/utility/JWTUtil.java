@@ -1,5 +1,6 @@
 package com.example.registrationProject.utility;
 
+import com.example.registrationProject.entity.User;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -17,9 +18,12 @@ public class JWTUtil {
 
 
 
-    public String generateToken(String email, long expiryMinutes){
+    public String generateToken(String email, User user, long expiryMinutes){
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role",user.getRole().getRole())
+                .claim("name", user.getFullName())
+                .claim("id", user.getId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+expiryMinutes*60*1000))
                 .signWith(key, SignatureAlgorithm.HS256)

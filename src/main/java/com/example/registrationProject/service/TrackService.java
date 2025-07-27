@@ -1,8 +1,6 @@
 package com.example.registrationProject.service;
 
-import com.example.registrationProject.entity.Track;
 import com.example.registrationProject.request.TrackRequest;
-import com.example.registrationProject.response.DTO.TrackDto;
 import com.example.registrationProject.response.TrackResponse;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +14,9 @@ public interface TrackService {
     TrackResponse getTrackByName(String name);
     TrackResponse getTrackByGenre(TrackRequest trackRequest);
     TrackResponse getTrackByLabel(TrackRequest trackRequest);
-    List<TrackDto> getAllTracks();
+    List<TrackResponse> getAllTracks();
 
     void deleteTrackById(TrackRequest trackRequest);
-    void deleteTrackByName(TrackRequest trackRequest);
+
 
 }

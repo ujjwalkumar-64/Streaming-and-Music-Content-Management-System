@@ -30,6 +30,7 @@ public class JWTAuthenticationProvider implements AuthenticationProvider {
         }
 
         UserDetails user= userServiceImpl.loadUserByUsername(username);
+
         return  new UsernamePasswordAuthenticationToken(user,token,user.getAuthorities());
 
     }

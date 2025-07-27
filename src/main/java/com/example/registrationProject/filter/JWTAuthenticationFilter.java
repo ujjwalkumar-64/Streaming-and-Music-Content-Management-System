@@ -44,17 +44,19 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
         UsernamePasswordAuthenticationToken authToken= new UsernamePasswordAuthenticationToken(login.getEmail(),login.getPassword());
 
-
         Authentication authResult= authenticationManager.authenticate(authToken);
         System.out.println(authResult);
         System.out.println(authToken);
 
+        User user= (User) authResult.getPrincipal();
+
+
 
         if(authResult.isAuthenticated() ){
-            String token= jwtUtil.generateToken(authResult.getName(),15); //15min
+            String token= jwtUtil.generateToken(authResult.getName(),user,15); //15min
             response.setHeader("Authorization","Bearer "+token);
 
-            String refreshToken= jwtUtil.generateToken(authResult.getName(),7*24*60); //7 days
+            String refreshToken= jwtUtil.generateToken(authResult.getName(),user,7*24*60); //7 days
             Cookie refreshCookie= new Cookie("refreshToken",refreshToken);
             refreshCookie.setPath("/refreshToken");
             refreshCookie.setHttpOnly(true);

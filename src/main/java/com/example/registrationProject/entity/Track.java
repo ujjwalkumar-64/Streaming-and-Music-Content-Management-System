@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -18,13 +19,19 @@ public class Track {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(unique = true)
     private String title;
     private String description;
     private String coverImage;
 
     @Enumerated(EnumType.STRING)
     private Status status;
+
+
+    @ManyToOne
+    @JoinColumn(name = "language_id")
+    private Language language;
+
 
     @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private TrackRecord trackRecord;

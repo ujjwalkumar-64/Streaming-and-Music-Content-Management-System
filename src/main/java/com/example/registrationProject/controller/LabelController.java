@@ -22,4 +22,14 @@ public class LabelController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping(value = "/label/profile")
+    public ResponseEntity<Object> getProfile(){
+        try{
+            return ResponseEntity.ok().body(labelService.getMyProfile());
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

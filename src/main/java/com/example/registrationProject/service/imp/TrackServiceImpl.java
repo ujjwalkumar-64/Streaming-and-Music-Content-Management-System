@@ -91,30 +91,12 @@ public class TrackServiceImpl implements TrackService {
     @Override
     public TrackResponse addTrack(TrackRequest trackRequest) {
         try{
-            User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
             if(trackRequest.getCoverImage().isEmpty() || trackRequest.getFile().isEmpty()){
                 throw new CustomException("Track image or file is empty");
             }
 
             String profileUrl = uploadPhoto(trackRequest.getCoverImage());
             TrackRecord trackRecord = uploadTrack(trackRequest.getFile());
-
-           switch(user.getRole().getRole()) {
-               case "ROLE_ARTIST" -> {
-                   Artist artist = artistRepository.findByUserId(user.getId()).orElseThrow(()->new CustomException("Artist not found"));
-                   if(!trackRequest.getArtistIds().contains(artist.getId())) {
-                       throw new CustomException("You can submit your own track");
-                   }
-               }
-
-               case "ROLE_LABEL" ->{
-                   Label label = labelRepository.findByUserId(user.getId()).orElseThrow(()->new CustomException("Label not found"));
-                   if(!trackRequest.getLabelId().equals(label.getId())) {
-                       throw new CustomException("You can submit your own track");
-                   }
-               }
-           }
 
             List<Artist> artists= artistRepository.findAllById(trackRequest.getArtistIds());
              if(artists.size() != trackRequest.getArtistIds().size()){
@@ -131,7 +113,7 @@ public class TrackServiceImpl implements TrackService {
             }
 
             Label label= null;
-            if(trackRequest.getAlbumId() != null){
+            if(trackRequest.getLabelId() != null){
 
               label= labelRepository.findById(trackRequest.getLabelId()).orElseThrow(()->new CustomException("Label not found"));
             }
@@ -150,40 +132,48 @@ public class TrackServiceImpl implements TrackService {
 
 
             Track response = trackRepository.save(track);
+            LabelDto labelDto= new LabelDto();
+            if(response.getLabel() != null){
+                 labelDto.builder().
+                        id(response.getLabel().getId())
+                        .name(response.getLabel().getName())
+                        .build();
+            }
 
-          LabelDto labelDto= new LabelDto().builder().
-                  id(response.getLabel().getId())
-                  .name(response.getLabel().getName())
-                  .description(response.getLabel().getDescription())
-                  .build();
+            AlbumDto albumDto= new AlbumDto();
+          if(response.getAlbum() != null){
+              albumDto.builder()
+                      .id(response.getAlbum().getId())
+                      .title(response.getAlbum().getTitle())
+                      .build();
 
-          AlbumDto albumDto= new AlbumDto().builder()
-                  .id(response.getAlbum().getId())
-                  .title(response.getAlbum().getTitle())
-                  .description(response.getAlbum().getDescription())
-                  .releaseDate(response.getAlbum().getReleaseDate())
-                  .build();
+          }
+
 
             List<GenreDto> genreDtos= new ArrayList<>();
-            response.getGenres().stream().forEach(genre->{
-                genreDtos.add(new GenreDto().builder()
-                        .id(genre.getId())
-                        .name(genre.getName())
+          if(response.getGenres() != null){
+              response.getGenres().stream().forEach(genre->{
+                  genreDtos.add(new GenreDto().builder()
+                          .id(genre.getId())
+                          .name(genre.getName())
 
-                        .build());
-            });
+                          .build());
+              });
+          }
 
-            List<ArtistDto> artistDtos= new ArrayList<>();
-            response.getArtists().stream().forEach(artist->{
-                artistDtos.add(new ArtistDto().builder()
-                        .id(artist.getId())
-                        .artistName(artist.getArtistName())
-                        .bio(artist.getBio())
-                        .profilePic(artist.getProfilePic())
-                        .build());
+          List<ArtistDto> artistDtos= new ArrayList<>();
+          if(response.getArtists() != null){
+              response.getArtists().stream().forEach(artist->{
+                  artistDtos.add(new ArtistDto().builder()
+                          .id(artist.getId())
+                          .artistName(artist.getArtistName())
+                          .bio(artist.getBio())
+                          .profilePic(artist.getProfilePic())
+                          .build());
 
-            });
+              });
 
+          }
 
 
 
@@ -213,6 +203,14 @@ public class TrackServiceImpl implements TrackService {
         User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Track track=trackRepository.findById(trackRequest.getId()).orElseThrow(()->new CustomException("Invalid Track Id"));
         try{
+            if(user.getRole().getRole().equalsIgnoreCase("ROLE_ARTIST")){
+                track.getArtists().stream().filter((artist -> artist.getUser().getId().equals(user.getId()))).findFirst().orElseThrow(()-> new CustomException("You are not authorize to update"));
+            }
+            if(user.getRole().getRole().equals("ROLE_LABEL")){
+                if(!track.getLabel().getOwnerUser().getId().equals(user.getId())){
+                    throw new CustomException("You are not authorize to update");
+                };
+            }
             if(trackRequest.getCoverImage() != null ){
                 String profileUrl = uploadPhoto(trackRequest.getCoverImage());
                 track.setCoverImage(profileUrl);
@@ -251,18 +249,20 @@ public class TrackServiceImpl implements TrackService {
             }
 
             Track response = trackRepository.save(track);
+
             LabelDto labelDto= new LabelDto().builder().
                     id(response.getLabel().getId())
                     .name(response.getLabel().getName())
-                    .description(response.getLabel().getDescription())
                     .build();
 
-            AlbumDto albumDto= new AlbumDto().builder()
-                    .id(response.getAlbum().getId())
-                    .title(response.getAlbum().getTitle())
-                    .description(response.getAlbum().getDescription())
-                    .releaseDate(response.getAlbum().getReleaseDate())
-                    .build();
+            AlbumDto albumDto= new AlbumDto();
+            if(response.getAlbum() != null){
+                  albumDto.builder()
+                        .id(response.getAlbum().getId())
+                        .title(response.getAlbum().getTitle())
+                        .build();
+            }
+
 
             List<GenreDto> genreDtos= new ArrayList<>();
             response.getGenres().stream().forEach(genre->{
@@ -278,8 +278,6 @@ public class TrackServiceImpl implements TrackService {
                 artistDtos.add(new ArtistDto().builder()
                         .id(artist.getId())
                         .artistName(artist.getArtistName())
-                        .bio(artist.getBio())
-                        .profilePic(artist.getProfilePic())
                         .build());
 
             });
@@ -317,15 +315,15 @@ public class TrackServiceImpl implements TrackService {
         LabelDto labelDto= new LabelDto().builder().
                 id(response.getLabel().getId())
                 .name(response.getLabel().getName())
-                .description(response.getLabel().getDescription())
                 .build();
 
-        AlbumDto albumDto= new AlbumDto().builder()
-                .id(response.getAlbum().getId())
-                .title(response.getAlbum().getTitle())
-                .description(response.getAlbum().getDescription())
-                .releaseDate(response.getAlbum().getReleaseDate())
-                .build();
+        AlbumDto albumDto= new AlbumDto();
+        if(response.getAlbum() != null){
+            albumDto.builder()
+                    .id(response.getAlbum().getId())
+                    .title(response.getAlbum().getTitle())
+                    .build();
+        }
 
         List<GenreDto> genreDtos= new ArrayList<>();
         response.getGenres().stream().forEach(genre->{
@@ -341,8 +339,6 @@ public class TrackServiceImpl implements TrackService {
             artistDtos.add(new ArtistDto().builder()
                     .id(artist.getId())
                     .artistName(artist.getArtistName())
-                    .bio(artist.getBio())
-                    .profilePic(artist.getProfilePic())
                     .build());
 
         });
@@ -370,15 +366,15 @@ public class TrackServiceImpl implements TrackService {
         LabelDto labelDto= new LabelDto().builder().
                 id(response.getLabel().getId())
                 .name(response.getLabel().getName())
-                .description(response.getLabel().getDescription())
                 .build();
 
-        AlbumDto albumDto= new AlbumDto().builder()
-                .id(response.getAlbum().getId())
-                .title(response.getAlbum().getTitle())
-                .description(response.getAlbum().getDescription())
-                .releaseDate(response.getAlbum().getReleaseDate())
-                .build();
+        AlbumDto albumDto= new AlbumDto();
+        if(response.getAlbum() != null){
+            albumDto.builder()
+                    .id(response.getAlbum().getId())
+                    .title(response.getAlbum().getTitle())
+                    .build();
+        }
 
         List<GenreDto> genreDtos= new ArrayList<>();
         response.getGenres().stream().forEach(genre->{
@@ -394,8 +390,6 @@ public class TrackServiceImpl implements TrackService {
             artistDtos.add(new ArtistDto().builder()
                     .id(artist.getId())
                     .artistName(artist.getArtistName())
-                    .bio(artist.getBio())
-                    .profilePic(artist.getProfilePic())
                     .build());
 
         });
@@ -428,21 +422,63 @@ public class TrackServiceImpl implements TrackService {
     }
 
     @Override
-    public List<TrackDto> getAllTracks() {
+    public List<TrackResponse> getAllTracks() {
         List<Track>tracks= trackRepository.findAll();
-        List<TrackDto> trackDtos= new ArrayList<>();
+        List<TrackResponse> trackResponses= new ArrayList<>();
+
 
         tracks.stream().forEach(track->{
-            trackDtos.add(new TrackDto().builder()
+
+            List<ArtistDto> artists= new ArrayList<>();
+            AlbumDto album = new AlbumDto();
+
+            if(track.getAlbum() != null){
+                album.setId(track.getAlbum().getId());
+                album.setTitle(track.getAlbum().getTitle());
+            }
+
+            LabelDto label= new LabelDto();
+            if(track.getLabel() != null){
+                label.setName(track.getLabel().getName());
+                label.setId(track.getLabel().getId());
+            }
+
+
+            List<GenreDto> genres= new ArrayList<>();
+
+            track.getGenres().stream().forEach(genre->{
+                genres.add(new GenreDto().builder()
+                                .id(genre.getId())
+                                .name(genre.getName())
+                        .build());
+            });
+
+
+
+
+            track.getArtists().stream().forEach(artist->{
+                artists.add(new ArtistDto().builder()
+                                .id(artist.getId())
+                                .artistName(artist.getArtistName())
+                        .build());
+            });
+            trackResponses.add(new TrackResponse().builder()
                             .id(track.getId())
                             .trackDuration(track.getTrackRecord().getDuration())
                             .trackUrl(track.getTrackRecord().getPath())
                             .trackDescription(track.getDescription())
                             .trackName(track.getTitle())
+                            .album(album)
+                            .trackType(track.getTrackRecord().getType())
+                            .artist(artists)
+                            .label(label)
+                            .genre(genres)
+
+
                     .build());
         });
 
-        return trackDtos;
+        return trackResponses;
     }
 
     @Override
@@ -452,11 +488,6 @@ public class TrackServiceImpl implements TrackService {
 
     }
 
-    @Override
-    public void deleteTrackByName(TrackRequest trackRequest) {
-         Track track= trackRepository.findByName(trackRequest.getTitle()).orElseThrow(()-> new CustomException("TRACK NOT FOUND"));
-         trackRepository.deleteById(track.getId());
-    }
 
 }
 

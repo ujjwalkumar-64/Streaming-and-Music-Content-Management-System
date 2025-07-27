@@ -68,18 +68,7 @@ public class TrackController {
     @DeleteMapping(value = "track/deleteById")
     public ResponseEntity<Object> deleteTrackById(@RequestBody TrackRequest trackRequest) {
         try{
-            trackService.deleteTrackById(trackRequest);
-            return ResponseEntity.noContent().build();
-        }
-        catch(CustomException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 
-    @DeleteMapping(value = "track/deleteByName")
-    public ResponseEntity<Object> deleteTrackByName(@RequestBody TrackRequest trackRequest) {
-        try{
-            trackService.deleteTrackByName(trackRequest);
             return ResponseEntity.noContent().build();
         }
         catch(CustomException e){

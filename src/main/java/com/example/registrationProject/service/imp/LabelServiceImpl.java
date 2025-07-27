@@ -98,9 +98,6 @@ public class LabelServiceImpl implements LabelService {
            UserDto userDto= UserDto.builder()
                    .id(label.getOwnerUser().getId())
                    .fullName(label.getOwnerUser().getFullName())
-                   .email(label.getOwnerUser().getEmail())
-                   .gender(label.getOwnerUser().getGender())
-                   .dob(label.getOwnerUser().getDob())
                    .build();
 
 
@@ -114,5 +111,21 @@ public class LabelServiceImpl implements LabelService {
                 .albums(albumDtos)
                 .tracks(trackDtos)
                 .build();
+    }
+
+    @Override
+    public LabelDto getMyProfile() {
+        User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Label label= labelRepository.findByUserId(user.getId()).orElseThrow(()-> new CustomException("label not found or invalid id"));
+        return LabelDto.builder()
+                .id(label.getId())
+                .name(label.getName())
+                .description(label.getDescription())
+                .logo(label.getLogo())
+                .ownerId(label.getOwnerUser().getId())
+                .status(label.getStatus())
+                .joiningDate(label.getCreatedAt())
+                .build();
+
     }
 }

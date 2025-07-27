@@ -30,7 +30,6 @@ public class Artist {
     private String bio;
     private String profilePic;
 
-
     
     @Enumerated(EnumType.STRING)
     private Status status;

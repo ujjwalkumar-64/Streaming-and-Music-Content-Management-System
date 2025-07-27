@@ -27,6 +27,15 @@ public class Album {
 
     private String coverImage;
 
+
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "album_languages",
+            joinColumns = @JoinColumn(name = "album_id"),
+            inverseJoinColumns = @JoinColumn(name= "language_id")
+    )
+    private List<Language> language;
+
     @OneToMany(cascade = CascadeType.ALL )
     private List<Artist> artists;
 
@@ -37,11 +46,11 @@ public class Album {
     private List<Track>tracks;
 
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
-            name="album_genres",
-            joinColumns = @JoinColumn(name="album_id"),
-            inverseJoinColumns = @JoinColumn(name="genre_id")
+            name= "album_genres",
+            joinColumns = @JoinColumn(name= "album_id"),
+            inverseJoinColumns = @JoinColumn(name= "genre_id")
     )
     private List<Genre> albumGenres;
 

@@ -26,6 +26,7 @@ public class UserResponse {
     private Gender gender;
     private String imageUrl;
     private Role role;
+    private String userRole;
 
     private LocalDate dob;
 
@@ -51,6 +52,19 @@ public class UserResponse {
         this.status = status;
         this.gender = gender;
         this.imageUrl = imageUrl;
+        this.dob = dob;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public UserResponse(Long id, String fullName, String email, Status status, Gender gender, String imageUrl, String role, LocalDate dob, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.fullName = fullName;
+        this.email = email;
+        this.status = status;
+        this.gender = gender;
+        this.imageUrl = imageUrl;
+        this.userRole = role;
         this.dob = dob;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;

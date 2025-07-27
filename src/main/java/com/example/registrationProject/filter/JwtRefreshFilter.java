@@ -1,5 +1,6 @@
 package com.example.registrationProject.filter;
 
+import com.example.registrationProject.entity.User;
 import com.example.registrationProject.token.JwtAuthenticationToken;
 import com.example.registrationProject.utility.JWTUtil;
 import jakarta.servlet.FilterChain;
@@ -37,8 +38,10 @@ public class JwtRefreshFilter extends OncePerRequestFilter {
 
        JwtAuthenticationToken authenticationToken= new JwtAuthenticationToken(refreshToken);
         Authentication authResult = authenticationManager.authenticate(authenticationToken);
+        User user = (User) authResult.getPrincipal();
+
         if(authResult.isAuthenticated()){
-            String newToken= jwtUtil.generateToken(authResult.getName(),15);  // 15min
+            String newToken= jwtUtil.generateToken(authResult.getName(),user,15);  // 15min
             response.setHeader("Authorization","Bearer "+newToken);
         }
 

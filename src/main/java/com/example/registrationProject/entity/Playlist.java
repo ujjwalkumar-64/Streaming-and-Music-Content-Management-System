@@ -24,10 +24,13 @@ public class Playlist {
     private String name;
     private String description;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @Enumerated(EnumType.STRING)
+    private Type type;
+
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
-            name="playlist_track",
-            joinColumns = @JoinColumn(name="playlist_id"),
+            name= "playlist_track",
+            joinColumns = @JoinColumn(name= "playlist_id"),
             inverseJoinColumns = @JoinColumn(name = "track_id")
 
     )

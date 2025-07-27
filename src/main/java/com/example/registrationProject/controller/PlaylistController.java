@@ -33,4 +33,26 @@ public class PlaylistController {
         }
     }
 
+    @GetMapping(value = "playlist/fetchMyPlaylists")
+    public ResponseEntity<Object> getMyPlaylists() {
+        try{
+            return ResponseEntity.ok(playlistService.getUserPlaylist());
+        }
+        catch (CustomException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/playlist/getAllPlaylists")
+    public ResponseEntity<Object> getAllPlaylists() {
+        try{
+            return ResponseEntity.ok(playlistService.getAllPlaylists());
+        }
+        catch (CustomException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
+
 }

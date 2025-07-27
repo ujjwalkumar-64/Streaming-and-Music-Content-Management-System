@@ -34,13 +34,14 @@ public class Label {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-
-
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Track> tracks;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Album> albums;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Podcast> podcasts;
 
     @CreationTimestamp
     @Column(updatable = false)

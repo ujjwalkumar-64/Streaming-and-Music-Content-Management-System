@@ -80,8 +80,7 @@ public class AlbumServiceImpl implements AlbumService {
             artistDtos.add(new ArtistDto().builder()
                             .id(artist.getId())
                             .artistName(artist.getArtistName())
-                            .bio(artist.getBio())
-                            .profilePic(artist.getProfilePic())
+
                     .build());
 
         });
@@ -90,10 +89,8 @@ public class AlbumServiceImpl implements AlbumService {
         response.getTracks().forEach(track->{
             trackDtos.add(new TrackDto().builder()
                     .id(track.getId())
-                    .trackDescription(track.getDescription())
                     .trackName(track.getTitle())
                     .trackUrl(track.getTrackRecord().getPath())
-                    .trackDuration(track.getTrackRecord().getDuration())
                     .build());
         });
 
@@ -138,4 +135,6 @@ public class AlbumServiceImpl implements AlbumService {
         return albumDtos;
 
     }
+
+
 }

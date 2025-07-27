@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -20,4 +19,5 @@ public class PlaylistRequest {
     private String description;
     private List<Long> trackIds;
     private Long trackId;
+    private Boolean isPublic;
 }

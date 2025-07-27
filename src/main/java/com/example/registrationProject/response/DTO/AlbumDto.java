@@ -4,6 +4,7 @@ import com.example.registrationProject.entity.Artist;
 import com.example.registrationProject.entity.Genre;
 import com.example.registrationProject.entity.Status;
 import com.example.registrationProject.entity.Track;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,11 +15,11 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.List;
 
-@Component
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AlbumDto {
     @JsonProperty("album_id")
     private  Long id;
