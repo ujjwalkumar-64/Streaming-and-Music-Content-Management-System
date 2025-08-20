@@ -1,9 +1,9 @@
 package com.example.registrationProject.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter@Setter
 public class Track {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,11 +32,10 @@ public class Track {
     @JoinColumn(name = "language_id")
     private Language language;
 
-
-    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST},fetch = FetchType.EAGER)
     private TrackRecord trackRecord;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH,CascadeType.DETACH}, fetch = FetchType.EAGER)
     @JoinTable(
             name = "track_artists",
             joinColumns = @JoinColumn(name = "track_id"),
@@ -44,10 +43,10 @@ public class Track {
     )
     private List<Artist> artists;
 
-    @ManyToOne(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER,cascade = {CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH,CascadeType.DETACH})
     private Album album;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
             name = "track_genres",
             joinColumns = @JoinColumn(name = "track_id"),
@@ -55,12 +54,19 @@ public class Track {
     )
     private List<Genre> genres;
 
-    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "tracks")
+    @ManyToMany(mappedBy = "tracks", cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JsonIgnore
     private List<Playlist> playlists;
 
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
     private Label label;
+
+    @OneToMany(mappedBy = "track",fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<TrackLike> likes;
+
 
 
     @CreationTimestamp

@@ -5,21 +5,24 @@ import com.example.registrationProject.response.DTO.ArtistDto;
 import com.example.registrationProject.response.DTO.EpisodeDto;
 import com.example.registrationProject.response.DTO.LanguageDto;
 import com.example.registrationProject.response.DTO.SeasonDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Builder
+
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PodcastResponse {
     private  Long id;
     private String title;

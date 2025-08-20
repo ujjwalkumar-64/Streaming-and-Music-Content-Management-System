@@ -1,6 +1,7 @@
 package com.example.registrationProject.response.DTO;
 
 import com.example.registrationProject.entity.Gender;
+import com.example.registrationProject.entity.Language;
 import com.example.registrationProject.entity.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,6 +12,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 @Setter
@@ -35,6 +37,9 @@ public class UserDto {
     private LocalDate dob;
     @JsonProperty("status")
     private Status status;
+
+    @JsonProperty("language")
+    private List<LanguageDto> languages;
 
     @JsonProperty("joinDate")
     private LocalDateTime joiningDate;

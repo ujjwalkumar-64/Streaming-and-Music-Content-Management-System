@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -71,17 +72,29 @@ public class User implements UserDetails {
         return password;
     }
 
-    @ManyToOne(cascade ={CascadeType.MERGE, CascadeType.PERSIST,CascadeType.DETACH},fetch = FetchType.EAGER)
+    @ManyToOne(cascade ={CascadeType.MERGE, CascadeType.PERSIST },fetch = FetchType.EAGER)
     @JoinColumn(name="role_id")
     private Role role;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {  CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
             name = "user_permission",
             joinColumns = @JoinColumn(name= "user_id"),
             inverseJoinColumns = @JoinColumn(name= "permission_id")
     )
     private List<Permission> userPermissions;
+
+    @ManyToMany(cascade = {CascadeType.MERGE,CascadeType.PERSIST, CascadeType.REFRESH},fetch = FetchType.EAGER)
+    @JoinTable(
+            name="user_language",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "language_id")
+    )
+    private List<Language> userLanguages;
+
+    @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<TrackLike> likedTracks;
 
 
 

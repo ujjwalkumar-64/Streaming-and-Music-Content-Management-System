@@ -36,4 +36,45 @@ public class AlbumController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping(value = "/album/{id}")
+    public ResponseEntity<Object> getAlbumById(@PathVariable Long id){
+        try{
+            return ResponseEntity.ok(albumService.getAlbumById(id));
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping(value = "delete/album/{id}")
+    public ResponseEntity<Object> deleteAlbum(@PathVariable Long id){
+        try{
+            albumService.deleteAlbum(id);
+            return ResponseEntity.ok("Album Deleted");
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "album/allTrack/{id}")
+    public ResponseEntity<Object> getAllAlbumTracks(@PathVariable Long id){
+        try{
+            return ResponseEntity.ok(albumService.getAllAlbumTracks(id));
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/album/update/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Object> updateAlbum(@PathVariable Long id, @ModelAttribute AlbumRequest albumRequest){
+        try{
+            return ResponseEntity.ok(albumService.updateAlbum(id, albumRequest));
+        }
+        catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

@@ -1,10 +1,7 @@
 package com.example.registrationProject.response;
 
 import com.example.registrationProject.entity.*;
-import com.example.registrationProject.response.DTO.AlbumDto;
-import com.example.registrationProject.response.DTO.ArtistDto;
-import com.example.registrationProject.response.DTO.GenreDto;
-import com.example.registrationProject.response.DTO.LabelDto;
+import com.example.registrationProject.response.DTO.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.stereotype.Component;
@@ -22,6 +19,7 @@ public class TrackResponse {
     private Long id;
     private String trackName;
     private String trackDescription;
+    private String trackCoverImage;
 
     private String trackType;
     private String trackUrl;
@@ -31,5 +29,6 @@ public class TrackResponse {
     private AlbumDto album;
     private List<GenreDto> genre;
     private LabelDto label;
+    private LanguageDto language;
 
 }

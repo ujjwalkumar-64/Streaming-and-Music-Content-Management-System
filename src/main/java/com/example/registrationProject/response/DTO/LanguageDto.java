@@ -6,6 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
+@Getter
 public class LanguageDto {
     private Long id;
     private String language;

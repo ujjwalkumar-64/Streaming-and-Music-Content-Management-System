@@ -23,6 +23,7 @@ public class TrackRequest {
     private String duration;
     private Status status;
     private MultipartFile file;
+    private Long languageId;
 
     private Long albumId;
     private Long labelId;

@@ -9,10 +9,7 @@ import com.example.registrationProject.response.DTO.TrackDto;
 import com.example.registrationProject.response.DTO.UserDto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,7 +17,8 @@ import java.util.List;
 @Component
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 public class LabelResponse {
     @JsonProperty("label_id")

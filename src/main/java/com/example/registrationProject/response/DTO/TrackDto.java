@@ -24,6 +24,19 @@ public class TrackDto {
     private String trackName;
     @JsonProperty("track_description")
     private String trackDescription;
+    @JsonProperty("track_artists")
+    private List<ArtistDto> artists;
+
+    @JsonProperty("trackCoverImage")
+    private String coverImage;
+
+    @JsonProperty("track_genres")
+    private List<GenreDto> genres;
+    @JsonProperty("track_album")
+    private AlbumDto album;
+
+    @JsonProperty("track_play_count")
+    private Long trackPlayCount;
 
     @JsonProperty("track_url")
     private String trackUrl;

@@ -15,12 +15,14 @@ import com.example.registrationProject.response.DTO.TrackDto;
 import com.example.registrationProject.response.DTO.UserDto;
 import com.example.registrationProject.response.LabelResponse;
 import com.example.registrationProject.service.LabelService;
+import com.example.registrationProject.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class LabelServiceImpl implements LabelService {
@@ -33,10 +35,21 @@ public class LabelServiceImpl implements LabelService {
     @Autowired
     private TrackRepository trackRepository;
 
+    @Autowired
+    RedisService redisService;
+
+
     // validation require label own update and also logo
     @Override
-    public LabelResponse updateLabel(LabelRequest labelRequest) {
+    public LabelDto updateLabel(LabelRequest labelRequest) {
         User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String redisKey= "label:profile:id:"+user.getId();
+
+        if(redisService.exists(redisKey)){
+            redisService.delete(redisKey);
+        }
+
          Label label= null;
 
          if(user.getRole().getRole().equals("ROLE_SUPER_ADMIN")){
@@ -103,21 +116,7 @@ public class LabelServiceImpl implements LabelService {
 
 
 
-        return new LabelResponse().builder()
-                .id(response.getId())
-                .name(response.getName())
-                .description(response.getDescription())
-                .ownerUser(userDto)
-                .albums(albumDtos)
-                .tracks(trackDtos)
-                .build();
-    }
-
-    @Override
-    public LabelDto getMyProfile() {
-        User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Label label= labelRepository.findByUserId(user.getId()).orElseThrow(()-> new CustomException("label not found or invalid id"));
-        return LabelDto.builder()
+        LabelDto result= LabelDto.builder()
                 .id(label.getId())
                 .name(label.getName())
                 .description(label.getDescription())
@@ -127,5 +126,62 @@ public class LabelServiceImpl implements LabelService {
                 .joiningDate(label.getCreatedAt())
                 .build();
 
+        redisService.saveWithTTL(redisKey,result,5, TimeUnit.MINUTES);
+        return result;
     }
+
+    @Override
+    public LabelDto getMyProfile() {
+
+        User user= (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String redisKey="label:profile:id:"+user.getId();
+
+        LabelDto cachedResponse= (LabelDto) redisService.get(redisKey);
+        if(cachedResponse !=null){
+            return cachedResponse;
+        }
+
+        Label label= labelRepository.findByUserId(user.getId()).orElseThrow(()-> new CustomException("label not found or invalid id"));
+        LabelDto result= LabelDto.builder()
+                .id(label.getId())
+                .name(label.getName())
+                .description(label.getDescription())
+                .logo(label.getLogo())
+                .ownerId(label.getOwnerUser().getId())
+                .status(label.getStatus())
+                .joiningDate(label.getCreatedAt())
+                .build();
+
+        redisService.saveWithTTL(redisKey,result,5, TimeUnit.MINUTES);
+        return result;
+
+    }
+
+    @Override
+    public List<LabelDto> getAllLabels() {
+
+        String redisKey="label:admin:all";
+        List<LabelDto> cachedResponse= (List<LabelDto>) redisService.get(redisKey);
+        if(cachedResponse !=null){
+            return cachedResponse;
+        }
+
+        List<Label> labels= labelRepository.findAll();
+        List<LabelDto> labelDtos= new ArrayList<>();
+        labels.forEach(label->{
+            labelDtos.add(new LabelDto().builder()
+                            .id(label.getId())
+                            .name(label.getName())
+                            .logo(label.getLogo())
+                            .description(label.getDescription())
+                            .ownerId(label.getOwnerUser().getId())
+                            .ownerName(label.getOwnerUser().getFullName())
+                    .build());
+        });
+
+        redisService.saveWithTTL(redisKey,labelDtos,10, TimeUnit.MINUTES);
+
+        return labelDtos;
+    };
 }

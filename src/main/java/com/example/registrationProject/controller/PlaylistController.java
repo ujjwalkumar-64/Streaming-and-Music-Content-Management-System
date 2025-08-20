@@ -23,15 +23,16 @@ public class PlaylistController {
         }
     }
 
-    @PostMapping(value = "playlist/addTrackToPlaylist")
-    public ResponseEntity<Object> addTrackToPlaylist(@RequestBody PlaylistRequest playlistRequest) {
-        try{
-            return ResponseEntity.ok(playlistService.addTrackToPlaylist(playlistRequest));
-        }
-        catch (CustomException e){
+    @PostMapping(value = "/playlist/{playlistId}/addTrack/{trackId}")
+    public ResponseEntity<Object> createTrack(@PathVariable Long playlistId, @PathVariable Long trackId) {
+        try {
+            return ResponseEntity.ok(playlistService.addTrackToPlaylist(playlistId, trackId));
+        } catch (CustomException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
 
     @GetMapping(value = "playlist/fetchMyPlaylists")
     public ResponseEntity<Object> getMyPlaylists() {
@@ -43,7 +44,7 @@ public class PlaylistController {
         }
     }
 
-    @GetMapping(value = "/playlist/getAllPlaylists")
+    @GetMapping(value = "playlist/getAllPlaylists")
     public ResponseEntity<Object> getAllPlaylists() {
         try{
             return ResponseEntity.ok(playlistService.getAllPlaylists());

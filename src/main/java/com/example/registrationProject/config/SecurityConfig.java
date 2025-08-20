@@ -5,14 +5,21 @@ import com.example.registrationProject.entity.User;
 import com.example.registrationProject.filter.JWTAuthenticationFilter;
 import com.example.registrationProject.filter.JwtRefreshFilter;
 import com.example.registrationProject.filter.JwtValidationFilter;
+import com.example.registrationProject.filter.LogRequestFilter;
 import com.example.registrationProject.provider.JWTAuthenticationProvider;
 import com.example.registrationProject.repository.UserRepository;
 import com.example.registrationProject.service.imp.UserServiceImpl;
 import com.example.registrationProject.utility.JWTUtil;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -54,8 +61,15 @@ public class SecurityConfig {
             "/login",
             "/otp/validate",
             "/otp/resend",
-            "/swagger-ui/index.html"
+            "/swagger-ui/index.html",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
     };
+
+
+
+
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(){
@@ -80,7 +94,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST","PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         configuration.addExposedHeader("Authorization");
@@ -89,6 +103,14 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
+
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> customTomcatConfig() {
+        return factory -> factory.addConnectorCustomizers(connector -> {
+            connector.setMaxPartCount( 100); // Allow up to 100 parts in a multipart request
+        });
+    }
+
 
 
     @Bean
@@ -99,28 +121,30 @@ public class SecurityConfig {
         JWTAuthenticationFilter jwtAuthFilter= new JWTAuthenticationFilter(authenticationManager,jwtUtil);
         JwtValidationFilter jwtValidationFilter= new JwtValidationFilter(authenticationManager);
         JwtRefreshFilter jwtRefreshFilter= new JwtRefreshFilter(jwtUtil,authenticationManager);
+        LogRequestFilter logRequestFilter= new LogRequestFilter();
         http
                 .cors(withDefaults() )
                 .authorizeHttpRequests(
                 auth-> auth
-                        .requestMatchers("/user/deleteAccount").hasAnyAuthority("MANAGE_USER")
+                        .requestMatchers("/user/deleteAccount").hasAnyAuthority("DELETE_CONTENT")
                         .requestMatchers("/user/update/permission").hasAnyAuthority("ASSIGN_ROLE")
                         .requestMatchers("/user/update/role").hasAuthority("ASSIGN_ROLE")
                         .requestMatchers("/user/*").hasAnyAuthority("BROWSE_MUSIC")
                         .requestMatchers("/artist/update").hasAnyAuthority("ROLE_ARTIST","MANAGE_USER")
                         .requestMatchers("/playlist/*").hasAnyAuthority("BROWSE_MUSIC","ROLE_USER")
                         .requestMatchers("/track/add").hasAuthority("MANAGE_CONTENT")
-                        .requestMatchers("/track/update").hasAnyAuthority("MANAGE_CONTENT")
-                        .requestMatchers("/track/delete").hasAuthority("ROLE_SUPER_ADMIN")
-                        .requestMatchers("/playlist/getAllPlaylists").hasAnyAuthority("ASSIGN_ROLE","ROLE_SUPER_ADMIN")
+                        .requestMatchers("/track/update").hasAnyAuthority("MANAGE_CONTENT","ROLE_SUPER_ADMIN")
+                        .requestMatchers("/delete/*").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/track/browsing").hasAnyAuthority("BROWSE_MUSIC")
+                        .requestMatchers("/playlist/getAllPlaylists").hasAnyAuthority("ASSIGN_ROLE","ROLE_SUPER_ADMIN","MANAGE_CONTENT")
                         .requestMatchers("/playlist/*").hasAnyAuthority("BROWSE_MUSIC")
                         .requestMatchers("/album/create").hasAnyAuthority("MANAGE_CONTENT")
                         .requestMatchers("/label/update").hasAnyAuthority("ROLE_SUPER_ADMIN","ROLE_LABEL","MANAGE_CONTENT")
                         .requestMatchers("/track/*").hasAnyAuthority("BROWSE_MUSIC")
                         .requestMatchers("/album/*").hasAnyAuthority("BROWSE_MUSIC")
                         .requestMatchers("/admin/*").hasAnyAuthority("ROLE_SUPER_ADMIN","ROLE_ADMIN")
-                        .requestMatchers("/artist/*").hasAnyAuthority("ROLE_ARTIST")
-                        .requestMatchers("/label/*").hasAnyAuthority("ROLE_LABEL")
+                        .requestMatchers("/artist/*").hasAnyAuthority("ROLE_ARTIST","MANAGE_CONTENT")
+                        .requestMatchers("/label/*").hasAnyAuthority("MANAGE_CONTENT")
                         .requestMatchers(whiteList).permitAll()
                         .anyRequest().authenticated()
         )
@@ -129,6 +153,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtValidationFilter,JWTAuthenticationFilter.class)
                 .addFilterAfter(jwtRefreshFilter, JwtValidationFilter.class)
+                .addFilterAfter(logRequestFilter, JwtRefreshFilter.class)
 
                 ;
 
@@ -148,6 +173,7 @@ public class SecurityConfig {
 
         return new ProviderManager(Arrays.asList(daoProvider, jwtProvider));
     }
+
 
 
 

@@ -1,6 +1,7 @@
 package com.example.registrationProject.response;
 
 import com.example.registrationProject.entity.*;
+import com.example.registrationProject.response.DTO.LanguageDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -28,6 +29,10 @@ public class UserResponse {
     private Role role;
     private String userRole;
 
+    private List<LanguageDto> languages;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dob;
 
     private LocalDateTime createdAt;

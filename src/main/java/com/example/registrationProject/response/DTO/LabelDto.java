@@ -36,6 +36,8 @@ public class LabelDto {
     private Long ownerId;
     @JsonProperty("label_joiningDate")
     private LocalDateTime joiningDate;
+    @JsonProperty("label_ownerName")
+    private String ownerName;
 
 
 }

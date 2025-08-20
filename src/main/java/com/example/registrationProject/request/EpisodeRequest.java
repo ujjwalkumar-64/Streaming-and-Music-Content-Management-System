@@ -26,7 +26,6 @@ public class EpisodeRequest {
     private Long languageId;
     private MultipartFile coverImage;
 
-    private Boolean isPublic;
 
     private Status status;
 

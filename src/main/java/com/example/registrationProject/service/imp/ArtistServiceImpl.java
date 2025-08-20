@@ -12,12 +12,15 @@ import com.example.registrationProject.response.DTO.ArtistDto;
 import com.example.registrationProject.response.DTO.GenreDto;
 import com.example.registrationProject.response.DTO.UserDto;
 import com.example.registrationProject.service.ArtistService;
+import com.example.registrationProject.service.CloudinaryService;
+import com.example.registrationProject.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ArtistServiceImpl implements ArtistService {
@@ -31,10 +34,27 @@ public class ArtistServiceImpl implements ArtistService {
     @Autowired
     private GenreRepository genreRepository;
 
+    @Autowired
+    private CloudinaryService cloudinaryService;
+
+    @Autowired
+    RedisService redisService;
+
     @Override
     public ArtistResponse updateArtist(ArtistRequest artistRequest) {
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String redisKey="artist:profile:email:"+user.getEmail();
+        if(redisService.exists(redisKey)){
+            redisService.delete(redisKey);
+        }
+
+        String redisKey1="artist:admin:list";
+        if(redisService.exists(redisKey1)){
+            redisService.delete(redisKey1);
+        }
+
         Artist artist = null;
 
         if(user.getRole().getRole().equals("ROLE_SUPER_ADMIN" )){
@@ -48,7 +68,7 @@ public class ArtistServiceImpl implements ArtistService {
         assert artist != null;
         if(artistRequest.getProfilePic() != null && !artistRequest.getProfilePic().isEmpty()){
             try{
-                String profilePic=  userService.uploadPhoto(artistRequest.getProfilePic());
+                String profilePic=  cloudinaryService.uploadPhoto(artistRequest.getProfilePic());
                 artist.setProfilePic(profilePic);
             }
             catch(Exception e){
@@ -94,6 +114,14 @@ public class ArtistServiceImpl implements ArtistService {
     @Override
     public ArtistDto getMyProfile() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String redisKey="artist:profile:email:"+user.getEmail();
+
+        ArtistDto cachedResponse = (ArtistDto) redisService.get(redisKey);
+        if(cachedResponse != null){
+            return cachedResponse;
+        }
+
         Artist artist = artistRepository.findByUserId(user.getId()).orElseThrow(()->new CustomException("Artist Profile Not Found"));
         List<Genre> genres = artist.getArtistGenres();
         List<GenreDto> genreDtos= new ArrayList<>();
@@ -103,7 +131,7 @@ public class ArtistServiceImpl implements ArtistService {
                             .name(genre.getName())
                     .build());
         });
-        return ArtistDto.builder()
+        ArtistDto result= ArtistDto.builder()
                 .id(artist.getId())
                 .artistName(artist.getArtistName())
                 .bio(artist.getBio())
@@ -112,23 +140,41 @@ public class ArtistServiceImpl implements ArtistService {
                 .genres(genreDtos)
                 .joiningDate(artist.getCreatedAt())
                 .build();
+
+        redisService.saveWithTTL(redisKey,result,10, TimeUnit.MINUTES);
+        return result;
     }
 
 
     @Override
-    public List<ArtistDto> getAllArtistProfile(){
+    public List<ArtistDto> getAllArtistProfile() throws CustomException{
+
+        String redisKey="artist:admin:list";
+
+        List<ArtistDto> cachedResponse = (List<ArtistDto>) redisService.get(redisKey);
+        if(cachedResponse != null){
+            return cachedResponse;
+        }
+
         List<Artist> artists = artistRepository.findAll();
 
         List<ArtistDto> artistDtos= new ArrayList<>();
+        if(artists.isEmpty()){
+            throw new CustomException("Artists Profiles Not Found");
+        }
         artists.forEach(artist->{
             List<Genre> genres = artist.getArtistGenres();
             List<GenreDto> genreDtos= new ArrayList<>();
-            genres.forEach(genre->{
-                genreDtos.add( GenreDto.builder()
-                        .id(genre.getId())
-                        .name(genre.getName())
-                        .build());
-            });
+            if(!genres.isEmpty()){
+                genres.forEach(genre->{
+                    genreDtos.add( GenreDto.builder()
+                            .id(genre.getId())
+                            .name(genre.getName())
+                            .build());
+                });
+
+            }
+
 
             artistDtos.add(ArtistDto.builder()
                             .id(artist.getId())
@@ -141,6 +187,9 @@ public class ArtistServiceImpl implements ArtistService {
 
                     .build());
         });
+
+        redisService.saveWithTTL(redisKey,artistDtos,10, TimeUnit.MINUTES);
+
         return artistDtos;
     }
 

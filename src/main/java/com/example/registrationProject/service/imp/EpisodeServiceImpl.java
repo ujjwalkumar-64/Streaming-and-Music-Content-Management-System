@@ -9,7 +9,9 @@ import com.example.registrationProject.repository.LanguageRepository;
 import com.example.registrationProject.request.EpisodeRequest;
 import com.example.registrationProject.response.DTO.ArtistDto;
 import com.example.registrationProject.response.EpisodeResponse;
+import com.example.registrationProject.service.CloudinaryService;
 import com.example.registrationProject.service.EpisodeService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +40,9 @@ public class EpisodeServiceImpl implements EpisodeService {
 
     @Autowired
     LanguageRepository languageRepository;
+
+    @Autowired
+    CloudinaryService cloudinaryService;
 
     private EpisodeRecord uploadEpisode(MultipartFile file) throws IOException, EncoderException {
         String filePath = "";
@@ -86,10 +91,10 @@ public class EpisodeServiceImpl implements EpisodeService {
     public EpisodeResponse addEpisode(EpisodeRequest episodeRequest) {
         try{
                 if(episodeRequest.getCoverImage().isEmpty() || episodeRequest.getFile().isEmpty()){
-                    throw new CustomException("Track image or file is empty");
+                    throw new CustomException("Episode image or file is empty");
                 }
-                String coverUrl = uploadPhoto(episodeRequest.getCoverImage());
-                EpisodeRecord episodeRecord = uploadEpisode(episodeRequest.getFile());
+                String coverUrl = cloudinaryService.uploadPhoto(episodeRequest.getCoverImage());
+                EpisodeRecord episodeRecord = cloudinaryService.uploadEpisodeFile(episodeRequest.getFile());
 
             List<Artist> artists= artistRepository.findAllById(episodeRequest.getArtistIds());
             if(artists.size() != episodeRequest.getArtistIds().size()){
@@ -148,11 +153,11 @@ public class EpisodeServiceImpl implements EpisodeService {
             Episode episode = episodeRepository.findById(episodeRequest.getId()).orElseThrow(()->new CustomException("Episode not found"));
 
             if(episodeRequest.getCoverImage() != null ){
-                String coverUrl = uploadPhoto(episodeRequest.getCoverImage());
+                String coverUrl = cloudinaryService.uploadPhoto(episodeRequest.getCoverImage());
                 episode.setCoverImage(coverUrl);
             }
             if(episodeRequest.getFile() != null){
-                EpisodeRecord episodeRecord = uploadEpisode(episodeRequest.getFile());
+                EpisodeRecord episodeRecord =  cloudinaryService.uploadEpisodeFile(episodeRequest.getFile());
                 episode.setEpisodeRecord(episodeRecord);
             }
 
@@ -214,5 +219,12 @@ public class EpisodeServiceImpl implements EpisodeService {
             throw new CustomException(e.getMessage());
         }
 
+    }
+
+    @Override
+    public void deleteEpisode(Long id){
+        Episode episode= episodeRepository.findById(id).orElseThrow(()->new CustomException("Episode not found"));
+        episode.setStatus(Status.inactive);
+        episodeRepository.save(episode);
     }
 }

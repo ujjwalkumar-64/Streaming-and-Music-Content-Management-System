@@ -4,6 +4,7 @@ import com.example.registrationProject.exception.CustomException;
 import com.example.registrationProject.request.PermissionUpdate;
 import com.example.registrationProject.request.UserRequest;
 import com.example.registrationProject.response.UserResponse;
+import com.example.registrationProject.service.TrackService;
 import com.example.registrationProject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -16,8 +17,11 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
     @Autowired
-    private UserRequest userRequest;
+    private TrackService trackService;
+
+
 
     @PostMapping(value = "/register")
     public ResponseEntity<Object> register(@RequestBody UserRequest userRequest){
@@ -132,6 +136,25 @@ public class UserController {
         }
     }
 
+    @GetMapping("/user/like/tracks")
+    public ResponseEntity<Object> getUserLikedTracksByTrackId(){
+        try{
+            return ResponseEntity.ok(trackService.getAllLikedTracksByUserId());
+        }
+        catch(CustomException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/user/count/like/track/{userId}")
+    public ResponseEntity<Object> getUserLikedTracksCountsByTrackId(@PathVariable  Long userId){
+        try {
+            return ResponseEntity.ok(trackService.countLikedTracksByUserId(userId));
+        }
+        catch(CustomException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
 }
 

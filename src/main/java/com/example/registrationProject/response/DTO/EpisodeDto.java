@@ -28,5 +28,7 @@ public class EpisodeDto {
     private String type;
     private Long duration;
 
+    List<ArtistDto> artists;
+
 
 }

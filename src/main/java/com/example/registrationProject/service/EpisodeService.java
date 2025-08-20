@@ -8,4 +8,5 @@ import org.springframework.stereotype.Service;
 public interface EpisodeService {
     EpisodeResponse addEpisode(EpisodeRequest episodeRequest);
     EpisodeResponse updateEpisode(EpisodeRequest episodeRequest);
+    void deleteEpisode(Long id);
 }

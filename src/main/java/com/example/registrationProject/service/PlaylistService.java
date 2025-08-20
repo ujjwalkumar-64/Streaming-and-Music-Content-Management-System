@@ -10,7 +10,7 @@ import java.util.List;
 public interface PlaylistService {
 
     PlaylistResponse createPlaylist(PlaylistRequest playlistRequest);
-    PlaylistResponse addTrackToPlaylist(PlaylistRequest playlistRequest);
+    PlaylistResponse addTrackToPlaylist(Long playlistId,Long trackId);
     List<PlaylistResponse> getUserPlaylist();
     List<PlaylistResponse> getAllPlaylists();
 }

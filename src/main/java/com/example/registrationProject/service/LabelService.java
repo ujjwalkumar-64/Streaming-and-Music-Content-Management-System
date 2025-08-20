@@ -5,10 +5,13 @@ import com.example.registrationProject.response.DTO.LabelDto;
 import com.example.registrationProject.response.LabelResponse;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface LabelService {
 
-    LabelResponse updateLabel(LabelRequest labelRequest);
+    LabelDto updateLabel(LabelRequest labelRequest);
     LabelDto getMyProfile();
+    List<LabelDto> getAllLabels();
 
 }

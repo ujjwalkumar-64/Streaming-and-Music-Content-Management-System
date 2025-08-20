@@ -1,6 +1,7 @@
 package com.example.registrationProject.utility;
 
 import com.example.registrationProject.entity.User;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -13,9 +14,13 @@ import java.util.Date;
 
 @Component
 public class JWTUtil {
-    private static final String JWT_SECRET="4444445hjhdsabdsyu7we8726836wb88shwgu387737737eu";
-    private static final Key key= Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
 
+    private final Key key;
+
+    public JWTUtil(Dotenv dotenv) {
+        String secret = dotenv.get("JWT_SECRET");
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
 
     public String generateToken(String email, User user, long expiryMinutes){

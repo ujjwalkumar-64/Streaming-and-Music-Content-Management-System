@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -25,7 +26,6 @@ public class UserRequest {
     private String password;
     private String newPassword;
 
-
      @Enumerated(EnumType.STRING)
     private Gender gender;
     private MultipartFile file;
@@ -36,6 +36,8 @@ public class UserRequest {
     private LocalDate dob;
 
     private String role;
+    private List<Long> languageIds;
+
 
 
     @Enumerated(EnumType.STRING)
